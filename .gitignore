@@ -1,0 +1,29 @@
+# Editor Files
+.*.sw?
+session.vim
+
+# Python Files
+__pycache__
+*.pyc
+
+# Source Output Files
+*.o
+*.a
+*.bin
+*.elf
+*.hex
+*.noi
+*.lst
+*.rel
+*.sym
+*.load
+*.send
+
+# Binary files
+*.img
+
+# Build Directory
+/build/
+
+# Miscellaneous
+/junk/
