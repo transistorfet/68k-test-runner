@@ -79,8 +79,7 @@ lprefetch:
     move.l      (REG_PC,%a0), %a1
     move.l      %a1, jump_to_address
     move.w      #0x4e71, (%a1)+
-    |move.w      #0x4e76, (%a1)+
-    move.w      #0x47f9, (%a1)+
+    move.w      #0x4ef9, (%a1)+
     move.l      (jump_back_address), (%a1)+
 
     | Load the register values
