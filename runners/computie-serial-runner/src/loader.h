@@ -4,7 +4,13 @@
 
 #include <stdint.h>
 
-#define MAX_DATA    32
+#define MAX_DATA            32
+#define MAX_INSTRUCTION     32
+
+struct MemoryData {
+    uint32_t address;
+    uint32_t data;
+};
 
 struct TestState {
     uint32_t d_reg[8];
@@ -12,8 +18,9 @@ struct TestState {
     uint32_t usp;
     uint32_t pc;
     uint16_t sr;
+    uint16_t instructions[MAX_INSTRUCTION];
     uint16_t data_len;
-    uint16_t data[MAX_DATA];
+    struct MemoryData data[MAX_DATA];
 };
 
 struct TestCase {

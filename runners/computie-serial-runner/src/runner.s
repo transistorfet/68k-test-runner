@@ -9,7 +9,7 @@
     .section .text
 
     .equ    REG_PC, 68
-    .equ    PREFETCH, 74
+    .equ    INSTRUCTIONS, 74
 
 
 .macro save_registers
@@ -76,9 +76,33 @@ lprefetch:
     |move.l     (%a2)
     */
 
+    | Set the address to jump to, to start the test
     move.l      (REG_PC,%a0), %a1
-    move.l      %a1, jump_to_address
-    move.w      #0x4e71, (%a1)+
+    |move.l      %a1, jump_to_address
+    lea         enter_test, %a2
+    move.l      %a1, (2,%a2)
+
+    | Write the test instructions to the test area
+    | along with the intsruction to jump to the exit
+    | TODO this is just a Dummy NOP for now
+    |move.w      #0x4e71, (%a1)+
+    move.w      #0xe120, (%a1)+
+
+/*
+    move.l      %a0, %a2
+    add.l       INSTRUCTIONS, %a2
+load_instr:
+    move.w      (%a2)+, (%a1)+
+    cmp.w       #0, (%a2)
+    bne         load_instr
+*/
+
+    | move.l    %pc, final_pc_value
+    |move.w      #23, (%a1)+
+    |lea         current_final, %a2
+    |add.l       REG_PC, %a2
+    |move.l      %a2, (%a1)+
+    | JMP   jump_back_address
     move.w      #0x4ef9, (%a1)+
     move.l      (jump_back_address), (%a1)+
 
@@ -106,7 +130,10 @@ lprefetch:
     move.w      (72,%a0), %sr
     move.l      (32,%a0), %a0
     |jmp         (jump_to_address)
-    jmp         0x180000
+    |jmp         0x180000
+
+enter_test:
+    jmp         0x12345678
 
     | TODO how will you actually call the instruction, and get the proper unmodified resulting state?
     | - you could leave nops and modify the running code live to have the instructions, followed by nops
@@ -123,12 +150,43 @@ lprefetch:
     |   test with
 
 exit_test:
+    move.w      %sr, (saved_flags)
+    move.l      %a0, (saved_a0)
+    move.l      #current_final, %a0
+    move.w      (saved_flags), (72,%a0)
+    move.l      (saved_a0), (32,%a0)
+
+    | Save the register values
+    move.l      %d0, (0,%a0)
+    move.l      %d1, (4,%a0)
+    move.l      %d2, (8,%a0)
+    move.l      %d3, (12,%a0)
+    move.l      %d4, (16,%a0)
+    move.l      %d5, (20,%a0)
+    move.l      %d6, (24,%a0)
+    move.l      %d7, (28,%a0)
+    | Already saved %a0 above
+    move.l      %a1, (36,%a0)
+    move.l      %a2, (40,%a0)
+    move.l      %a3, (44,%a0)
+    move.l      %a4, (48,%a0)
+    move.l      %a5, (52,%a0)
+    move.l      %a6, (56,%a0)
+    move.l      %a7, (60,%a0)
+    move.l      %usp, %a1
+    move.l      %a1, (64,%a0)
 
     move.l     (stack_pointer), %ssp
     restore_registers
     rts
 
     .section .data
+
+saved_flags:
+    .word 0x12345678
+
+saved_a0:
+    .long 0x12345678
 
 stack_pointer:
     .long 0x12345678
