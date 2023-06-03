@@ -8,10 +8,6 @@ struct TestState current_final;
 
 extern void run_test();
 
-void process_message(const char *buffer, uint16_t length) {
-    
-}
-
 void print_state(struct TestState *state) {
     for (int i = 0; i < 8; i++) {
         printf("D%d: %08x    A%d: %08x\n", i, state->d_reg[i], i, state->a_reg[i]);
@@ -75,6 +71,17 @@ void run_loaded_test() {
 
     printf("\nFinal State:\n");
     print_state(&current_final);
+}
+
+void process_message(const char *buffer, uint16_t length) {
+    switch (buffer[0]) {
+        case 2:
+            
+            break;
+        default:
+            printf("unknown message: %x\n", buffer[0]);
+            berak;
+    }
 }
 
 
