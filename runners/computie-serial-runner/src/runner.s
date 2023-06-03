@@ -63,19 +63,6 @@ run_test:
 
     | TODO load the memory
 
-    /*
-    | Load the instruction data into memory
-    move.l      (PREFETCH,%a0), %a1
-    move.l      (REG_PC,%a0), %a2
-lprefetch:
-    move.l      (%a1)+, %d0
-    move.l      %d0, (%a2)+
-    cmp.l       0, %d0
-    bne         lprefetch
-
-    |move.l     (%a2)
-    */
-
     | Set the address to jump to, to start the test
     move.l      (REG_PC,%a0), %a1
     |move.l      %a1, jump_to_address
@@ -84,27 +71,17 @@ lprefetch:
 
     | Write the test instructions to the test area
     | along with the intsruction to jump to the exit
-    | TODO this is just a Dummy NOP for now
-    |move.w      #0x4e71, (%a1)+
-    move.w      #0xe120, (%a1)+
-
-/*
     move.l      %a0, %a2
-    add.l       INSTRUCTIONS, %a2
+    add.l       #INSTRUCTIONS, %a2
 load_instr:
     move.w      (%a2)+, (%a1)+
     cmp.w       #0, (%a2)
     bne         load_instr
-*/
 
-    | move.l    %pc, final_pc_value
-    |move.w      #23, (%a1)+
-    |lea         current_final, %a2
-    |add.l       REG_PC, %a2
-    |move.l      %a2, (%a1)+
-    | JMP   jump_back_address
+    | Write `JMP jump_back_address` instruction
     move.w      #0x4ef9, (%a1)+
     move.l      (jump_back_address), (%a1)+
+
 
     | Load the register values
     move.l      (64,%a0), %a1
@@ -129,11 +106,9 @@ load_instr:
     | Carefully jump to the target instruction
     move.w      (72,%a0), %sr
     move.l      (32,%a0), %a0
-    |jmp         (jump_to_address)
-    |jmp         0x180000
 
 enter_test:
-    jmp         0x12345678
+    jmp         0x12345678  | this address is self-modified at runtime
 
     | TODO how will you actually call the instruction, and get the proper unmodified resulting state?
     | - you could leave nops and modify the running code live to have the instructions, followed by nops

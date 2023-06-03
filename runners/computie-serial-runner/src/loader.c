@@ -37,26 +37,15 @@ void load_memory(struct TestState *state) {
 }
 
 void run_loaded_test() {
-    // d0: f38bcde6    a0: c6648978
-    // d1: 39be6b6e    a1: 56681814
-    // d2: a1f40cb9    a2: df03c6cd
-    // d3: c7b0779f    a3: 7d6926d5
-    // d4: 1ed71c75    a4: 869803ac
-    // d5: b07e6d58    a5: 188aee2e
-    // d6: f6d3a760    a6: dbba2485
-    // d7: 5db61ce7   usp: 5c14a0c4
-    // pc: 00000c00   ssp: 00000800
-    // sr: 2707
-
     current_initial.pc = 0x180000;
     current_initial.d_reg[0] = 0xf38bcde6;
     current_initial.d_reg[1] = 0x39be6b6e;
     current_initial.d_reg[2] = 0xa1f40cb9;
     current_initial.d_reg[3] = 0xc7b0779f;
     current_initial.d_reg[4] = 0x1ed71c75;
-    current_initial.d_reg[5] = 0xb07e6d58;
-    current_initial.d_reg[6] = 0xf6d3a760;
-    current_initial.d_reg[7] = 0x5db61ce7;
+    current_initial.d_reg[5] = 0x7db1033d;
+    current_initial.d_reg[6] = 0x2b01d2e7;
+    current_initial.d_reg[7] = 0x58862978;
 
     current_initial.a_reg[0] = 0xc6648978;
     current_initial.a_reg[1] = 0x56681814;
@@ -68,9 +57,9 @@ void run_loaded_test() {
 
     current_initial.a_reg[7] = 0x190000;
     current_initial.usp = 0x190000;
-    current_initial.sr = 0x2707;
+    current_initial.sr = 0x2700;
     current_initial.data_len = 0;
-    strcpy((char *) current_initial.instructions, "\x1E\x20\x00");
+    memcpy((char *) current_initial.instructions, "\xe9\x05\x00\x00", 4);
 
     printf("Running test\n");
     load_memory(&current_initial);
