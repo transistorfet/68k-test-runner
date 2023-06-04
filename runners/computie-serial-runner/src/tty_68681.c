@@ -8,8 +8,15 @@
 #define CRA_WR_ADDR         ((volatile uint8_t *) 0x700005)
 #define TBA_WR_ADDR         ((volatile uint8_t *) 0x700007)
 #define RBA_RD_ADDR         ((volatile uint8_t *) 0x700007)
-#define ACR_WR_ADDR         ((volatile uint8_t *) 0x700009)
 
+#define MR1B_MR2B_ADDR      ((volatile uint8_t *) 0x700011)
+#define SRB_RD_ADDR         ((volatile uint8_t *) 0x700013)
+#define CSRB_WR_ADDR        ((volatile uint8_t *) 0x700013)
+#define CRB_WR_ADDR         ((volatile uint8_t *) 0x700015)
+#define TBB_WR_ADDR         ((volatile uint8_t *) 0x700017)
+#define RBB_RD_ADDR         ((volatile uint8_t *) 0x700017)
+
+#define ACR_WR_ADDR         ((volatile uint8_t *) 0x700009)
 #define CTUR_WR_ADDR        ((volatile uint8_t *) 0x70000D)
 #define CTLR_WR_ADDR        ((volatile uint8_t *) 0x70000F)
 #define START_RD_ADDR       ((volatile uint8_t *) 0x70001D)
@@ -72,10 +79,13 @@
 
 #define delay(count)        ({ int c = count; while (--c > 0) { asm volatile (""); } })
 
-int init_tty() {
-/*
+extern int putchar(int);
+
+int init_tty(void) {
     asm volatile("or.w    #0x0700, %sr");
 
+    *CRA_WR_ADDR = CMD_DISABLE_RX | CMD_DISABLE_TX;
+    asm volatile("nop\n");
     *CRA_WR_ADDR = CMD_RESET_MR;
 
     *MR1A_MR2A_ADDR = MR1A_MODE_A_REG_1_CONFIG;
@@ -91,10 +101,18 @@ int init_tty() {
     asm volatile("nop\n");
     *CRA_WR_ADDR = CMD_ENABLE_TX_RX;
 
+    *MR1B_MR2B_ADDR = MR1A_MODE_A_REG_1_CONFIG;
+    *MR1B_MR2B_ADDR = MR2A_MODE_A_REG_2_CONFIG;
+    *CSRB_WR_ADDR = CSRA_CLK_SELECT_REG_A_CONFIG;
+    *ACR_WR_ADDR = ACR_AUX_CONTROL_REG_CONFIG;
 
-    // Configure timer
-    //*CTUR_WR_ADDR = 0xFF;
-    //*CTLR_WR_ADDR = 0xFF;
+    *CRB_WR_ADDR = CMD_RESET_ERROR;
+    asm volatile("nop\n");
+    *CRB_WR_ADDR = CMD_RESET_RX;
+    asm volatile("nop\n");
+    *CRB_WR_ADDR = CMD_RESET_TX;
+    asm volatile("nop\n");
+    *CRB_WR_ADDR = CMD_ENABLE_TX_RX;
 
     // Disable interrupts
     *IMR_WR_ADDR = 0x00;
@@ -109,7 +127,10 @@ int init_tty() {
 
     // Assert CTS
     *OUT_SET_ADDR = 0x01;
-*/
+
+    putchar('\n');
+    putchar('\n');
+
     return 0;
 }
 
@@ -132,36 +153,40 @@ int getchar(void) {
             *OUT_SET_ADDR = in;
             *OUT_RESET_ADDR = (~in & 0xF0);
         }
-
-        /*
-        // Debugging - Set all LEDs on if an input is active
-        in = (*INPUT_RD_ADDR & 0x3f);
-        if (in & 0x18) {
-            *OUT_SET_ADDR = 0xF0;
-        } else {
-            *OUT_RESET_ADDR = 0xF0;
-        }
-        */
-
-        /*
-        // Debugging - Set LEDs on timer
-        if (*ISR_RD_ADDR & ISR_TIMER_CHANGE) {
-            if (tick) {
-                tick = 0;
-                *OUT_SET_ADDR = 0x80;
-            } else {
-                tick = 1;
-                *OUT_RESET_ADDR = 0x80;
-            }
-            register char reset = *STOP_RD_ADDR;
-        }
-        */
     }
 }
 
 int putchar(int ch) {
     while (!(*SRA_RD_ADDR & SR_TX_READY)) { }
     *TBA_WR_ADDR = (char) ch;
+    return ch;
+}
+
+int getchar_b(void) {
+    char in;
+    char status;
+
+    // Assert CTS
+    *OUT_SET_ADDR = 0x02;
+    while (1) {
+        status = *SRB_RD_ADDR;
+        if (status & SR_RX_READY) {
+            // De-Assert CTS
+            *OUT_RESET_ADDR = 0x02;
+            return *RBB_RD_ADDR;
+        }
+
+        // Debugging - Set LEDs to the upper status bits of channel A
+        if (in & 0xF0) {
+            *OUT_SET_ADDR = in;
+            *OUT_RESET_ADDR = (~in & 0xF0);
+        }
+    }
+}
+
+int putchar_b(int ch) {
+    while (!(*SRB_RD_ADDR & SR_TX_READY)) { }
+    *TBB_WR_ADDR = (char) ch;
     return ch;
 }
 

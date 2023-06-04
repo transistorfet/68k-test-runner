@@ -9,7 +9,8 @@
     .section .text
 
     .equ    REG_PC, 68
-    .equ    INSTRUCTIONS, 74
+    .equ    INSTRUCTION_LEN, 74
+    .equ    INSTRUCTIONS, 76
 
 
 .macro save_registers
@@ -73,10 +74,10 @@ run_test:
     | along with the intsruction to jump to the exit
     move.l      %a0, %a2
     add.l       #INSTRUCTIONS, %a2
+    move.w      (INSTRUCTION_LEN,%a0), %d0
 load_instr:
     move.w      (%a2)+, (%a1)+
-    cmp.w       #0, (%a2)
-    bne         load_instr
+    dbne         %d0, load_instr
 
     | Write `JMP jump_back_address` instruction
     move.w      #0x4ef9, (%a1)+
@@ -158,7 +159,7 @@ exit_test:
     .section .data
 
 saved_flags:
-    .word 0x12345678
+    .word 0x1234
 
 saved_a0:
     .long 0x12345678

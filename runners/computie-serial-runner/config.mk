@@ -1,8 +1,8 @@
 
 # Configuration
 
-BOARD = k30
-#BORAD = 68k
+#BOARD = k30
+BORAD = 68k
 
 # End of Configuration
 
